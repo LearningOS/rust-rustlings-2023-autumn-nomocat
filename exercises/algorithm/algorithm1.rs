@@ -69,15 +69,67 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: Ord + Clone,
+    {
+        //TODO
+        match (list_a.start, list_b.start) {
+            (None, Some(b)) => Self {
+                length: list_b.length,
+                start: list_b.start,
+                end: None,
+            },
+            (a, None) => Self {
+                length: 0,
+                start: None,
+                end: a,
+            },
+            (a, b) => {
+                let mut merged_list = LinkedList::new();
+
+                let mut ptr_a = list_a.start;
+                let mut ptr_b = list_b.start;
+
+                while let (Some(a_node), Some(b_node)) = (ptr_a, ptr_b) {
+                    unsafe {
+                        // Compare values in the current nodes
+                        if a_node.as_ref().val <= b_node.as_ref().val {
+                            // Take the value from list_a
+                            merged_list.add(a_node.as_ref().val.clone());
+                            ptr_a = a_node.as_ref().next; // Move pointer to the next node in list_a
+                        } else {
+                            // Take the value from list_b
+                            merged_list.add(b_node.as_ref().val.clone());
+                            ptr_b = b_node.as_ref().next; // Move pointer to the next node in list_b
+                        }
+                    }
+                }
+                // Append the remaining elements of list_a, if any
+                while let Some(a_node) = ptr_a {
+                    unsafe {
+                        merged_list.add(a_node.as_ref().val.clone());
+                        ptr_a = a_node.as_ref().next;
+                    }
+                }
+
+                // Append the remaining elements of list_b, if any
+                while let Some(b_node) = ptr_b {
+                    unsafe {
+                        merged_list.add(b_node.as_ref().val.clone());
+                        ptr_b = b_node.as_ref().next;
+                    }
+                }
+
+                merged_list
+            }
+            _ => Self {
+                length: 0,
+                start: None,
+                end: None,
+            },
         }
-	}
+    }
 }
 
 impl<T> Display for LinkedList<T>
@@ -135,7 +187,7 @@ mod tests {
 		let vec_a = vec![1,3,5,7];
 		let vec_b = vec![2,4,6,8];
 		let target_vec = vec![1,2,3,4,5,6,7,8];
-		
+
 		for i in 0..vec_a.len(){
 			list_a.add(vec_a[i]);
 		}
